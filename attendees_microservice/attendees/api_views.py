@@ -15,6 +15,9 @@ class AttendeeListEncoder(ModelEncoder):
     model = Attendee
     properties = ["name"]
 
+    def get_extra_data(self, o):
+        return {"conference": o.conference.name}
+
 
 class AttendeeDetailEncoder(ModelEncoder):
     model = Attendee
@@ -36,35 +39,18 @@ class AttendeeDetailEncoder(ModelEncoder):
 
 @require_http_methods(["GET", "POST"])
 def api_list_attendees(request, conference_vo_id=None):
-    """
-    Lists the attendees names and the link to the attendee
-    for the specified conference id.
-
-    Returns a dictionary with a single key "attendees" which
-    is a list of attendee names and URLS. Each entry in the list
-    is a dictionary that contains the name of the attendee and
-    the link to the attendee's information.
-
-    {
-        "attendees": [
-            {
-                "name": attendee's name,
-                "href": URL to the attendee,
-            },
-            ...
-        ]
-    }
-    """
+    """See all attendees or create one"""
     if request.method == "GET":
-        attendees = Attendee.objects.filter(conference=conference_vo_id)
+        if conference_vo_id is not None:
+            attendees = Attendee.objects.filter(conference=conference_vo_id)
+        else:
+            attendees = Attendee.objects.all()
         return JsonResponse(
             {"attendees": attendees},
             encoder=AttendeeListEncoder,
         )
-    else:
+    elif request.method == "POST":
         content = json.loads(request.body)
-
-        # Get the Conference object and put it in the content dict
         try:
             conference_href = content["conference"]
             conference = ConferenceVO.objects.get(import_href=conference_href)
@@ -74,13 +60,13 @@ def api_list_attendees(request, conference_vo_id=None):
                 {"message": "Invalid conference id"},
                 status=400,
             )
-
         attendee = Attendee.objects.create(**content)
         return JsonResponse(
             attendee,
             encoder=AttendeeDetailEncoder,
             safe=False,
         )
+
 
 
 def api_show_attendee(request, pk):
