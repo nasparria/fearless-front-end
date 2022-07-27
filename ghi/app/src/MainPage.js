@@ -1,7 +1,6 @@
-
-3.77 KiB
 import React from 'react';
 import { Link } from 'react-router-dom';
+
 function ConferenceColumn(props) {
   return (
     <div className="col">
@@ -30,6 +29,7 @@ function ConferenceColumn(props) {
     </div>
   );
 }
+
 class MainPage extends React.Component {
   constructor(props) {
     super(props);
@@ -37,13 +37,16 @@ class MainPage extends React.Component {
       conferenceColumns: [[], [], []],
     };
   }
+
   async componentDidMount() {
     const url = 'http://localhost:8000/api/conferences/';
+
     try {
       const response = await fetch(url);
       if (response.ok) {
         // Get the list of conferences
         const data = await response.json();
+
         // Create a list of for all the requests and
         // add all of the requests to it
         const requests = [];
@@ -51,12 +54,15 @@ class MainPage extends React.Component {
           const detailUrl = `http://localhost:8000${conference.href}`;
           requests.push(fetch(detailUrl));
         }
+
         // Wait for all of the requests to finish
         // simultaneously
         const responses = await Promise.all(requests);
+
         // Set up the "columns" to put the conference
         // information into
         const conferenceColumns = [[], [], []];
+
         // Loop over the conference detail responses and add
         // each to to the proper "column" if the response is
         // ok
@@ -73,6 +79,7 @@ class MainPage extends React.Component {
             console.error(conferenceResponse);
           }
         }
+
         // Set the state to the new list of three lists of
         // conferences
         this.setState({conferenceColumns: conferenceColumns});
@@ -81,6 +88,7 @@ class MainPage extends React.Component {
       console.error(e);
     }
   }
+
   render() {
     return (
       <>
@@ -111,4 +119,7 @@ class MainPage extends React.Component {
     );
   }
 }
+
 export default MainPage;
+
+
